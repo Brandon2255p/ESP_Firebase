@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="jquery.mobile-1.4.5.css">
+    <script src="jquery.js"></script>
+    <script src="jquery.mobile-1.4.5.js"></script>
+    <title>Control</title>
+  </head>
+  <body>
+    <div data-role="page">
+      <div data-role="header" data-position="fixed" data-fullscreen="true">
+        <h1>Control Center</h1>
+      </div>
+      <div role="main">
+          <div class="card">
+            <h2>Light</h2>
+            <button id="testtag" class="button" target="_blank" onclick="loadOnPage();">On</button>
+            <button id="testtag2" class="button" target="_blank" onclick="loadOffPage();">Off</button>
+          </div>
+          <div class="card">
+            <h2>Fan</h2>
+            <button class="button" target="_blank">On</button>
+            <button class="button" target="_blank">Off</button>
+            <div class="ui-flipswitch ui-shadow-inset ui-bar-inherit ui-corner-all ui-flipswitch-active"><a href="#" class="ui-flipswitch-on ui-btn ui-shadow ui-btn-inherit">On</a><span class="ui-flipswitch-off">Off</span><select name="flip2" id="flip2" data-role="flipswitch" class="ui-flipswitch-input" tabindex="-1">
+    				<option value="off">Off</option>
+    				<option value="on">On</option>
+    			</select></div>
+          </div>
+      </div>
+      <div data-role="footer">
+        <h1>Footer Text</h1>
+      </div>
+    </div>
+
+    <script>
+      function loadOnPage() {
+        relayPage = window.open("http://192.168.2.6/LED=ON", "MsgWindow", "");
+      }
+
+      function loadOffPage() {
+        relayPage = window.open("http://192.168.2.6/LED=OFF", "MsgWindow", "");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
+  text-align: center;}
+.button {
+  background-color: #71bef1;
+  padding: 8px;
+  border-radius: 7px;
+  margin: 4px;
+  border-width: inherit;
+  width: 70px;
+}
+.button:hover {
+  background-color: chartreuse;
+}
+.card {
+  border-color: black;
+  border-style: solid;
+  border-width: inherit;
+  padding: 20px;
+  outline: black;
+  border-radius: 15px;
+  width: 159px;
+  height: 200px;
+  box-shadow: 2px 3px 8px 0px black;
+  background-color: white;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 40px;
+}
