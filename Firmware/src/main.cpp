@@ -3,11 +3,8 @@
 #include <WiFiUdp.h>
 #include "ArduinoOTA.h"
 #include <WiFiClientSecure.h>
+#include "user.h"
 
-const char* ssid = "*****";
-const char* password = "******";
-
-const char* host = "****.cloudfunctions.net";
 const char* urlGoogleApi = "www.googleapis.com";
 
 const int httpsPort = 443;
