@@ -1,23 +1,18 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
-#include "ArduinoOTA.h"
+#include <ArduinoOTA.h>
 #include <WiFiClientSecure.h>
 #include "user.h"
-
-const char* urlGoogleApi = "www.googleapis.com";
-
-const int httpsPort = 443;
+#include "firebase.h"
 
 const int button1Pin = 2;
 // Use web browser to view and copy
 // SHA1 fingerprint of the certificate
-const char* fingerprint = "16 9B 08 24 17 9E 4D 88 CF 0E B0 06 A7 EB 9D 77 5E CD 5C B2";
-const char* googleApiFingerprint = "60 40 DB 92 30 6C C8 BC EB 31 CA CA C8 8D 10 74 30 B1 6A FF";
 //Prototypes
-String GetJwt();
-String GetToken(String Jwt);
 void CheckWiFiConnection();
+
+Firebase firebase(JwtFunctionHost, JwtFingerprint, FirebaseUrl, FirebaseFingerprint);
 
 void setup() {
   pinMode(button1Pin, INPUT);
@@ -30,11 +25,6 @@ void setup() {
     delay(5000);
     ESP.restart();
   }
-
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
-
-  // Hostname defaults to esp8266-[ChipID]
   ArduinoOTA.setHostname("myesp8266");
 
   // No authentication by default
@@ -72,6 +62,7 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  configTime(2 * 3600, 0, "pool.ntp.org", "time.nist.gov");
 }
 
 void loop() {
@@ -82,117 +73,12 @@ void loop() {
   if(buttonPressed){
     Serial.println("Button 1 Pressed");
     delay(200);
-    String Jwt = GetJwt();
-    String token = GetToken(Jwt);
-    Serial.println(token);
+    firebase.RequestJwt();
+    firebase.TestDb("/devices/esp1.json");
+    firebase.PutDb("/devices/esp2.json", "{\"name\":\"test\"}");
+    //String token = GetToken(Jwt);
+    //Serial.println(token);
   }
-}
-
-String GetJwt()
-{
-
-    // Use WiFiClientSecure class to create TLS connection
-    WiFiClientSecure client;
-    Serial.print("connecting to ");
-    Serial.println(host);
-    if (!client.connect(host, httpsPort)) {
-      Serial.println("connection failed");
-      return "";
-    }
-
-    if (client.verify(fingerprint, host)) {
-      Serial.println("certificate matches");
-    } else {
-      Serial.println("certificate doesn't match");
-    }
-
-    String url = "/sendIP";
-    Serial.print("requesting URL: ");
-    Serial.println(url);
-
-    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" +
-                 "User-Agent: ESP8266\r\n" +
-                 "Connection: close\r\n\r\n");
-
-    Serial.println("request sent");
-    while (client.connected()) {
-      String line = client.readStringUntil('\n');
-      if (line == "\r") {
-        Serial.println("headers received:");
-        Serial.println("==========");
-        Serial.println(line);
-        Serial.println("==========");
-        break;
-      }
-    }
-    String line = client.readStringUntil('\n');
-    // if (line.startsWith("{\"state\":\"success\"")) {
-    //   Serial.println("esp8266/Arduino CI successfull!");
-    // } else {
-    //   Serial.println("esp8266/Arduino CI has failed");
-    // }
-    Serial.println("reply was:");
-    Serial.println("==========");
-    Serial.println(line);
-    Serial.println("==========");
-    Serial.println("closing connection");
-    return line;
-}
-
-String GetToken(String Jwt)
-{
-    // Use WiFiClientSecure class to create TLS connection
-    WiFiClientSecure client;
-    Serial.print("connecting to ");
-    Serial.println(urlGoogleApi);
-    if (!client.connect(urlGoogleApi, httpsPort)) {
-      Serial.println("connection failed");
-      return "";
-    }
-
-    if (client.verify(googleApiFingerprint, urlGoogleApi)) {
-      Serial.println("certificate matches");
-    } else {
-      Serial.println("certificate doesn't match");
-    }
-
-    String url = "/oauth2/v4/token";
-    Serial.print("requesting URL: ");
-    Serial.println(url);
-    String requestBody = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + Jwt + "\r\n\r\n";
-    String request = String("POST ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + urlGoogleApi + "\r\n" +
-                 "Content-Type: application/x-www-form-urlencoded\r\n" +
-                 "Content-Length: " + requestBody.length() + "\r\n\r\n" + requestBody;
-    Serial.println(request);
-    client.print(request);
-
-    Serial.println("request sent");
-    while (client.connected()) {
-      String line = client.readStringUntil('\n');
-      if (line == "\r") {
-        Serial.println("headers received:");
-        Serial.println("==========");
-        Serial.println(line);
-        break;
-        Serial.println("==========");
-      }
-    }
-    Serial.println("reply was:");
-    Serial.println("==========");
-    while(client.available()){
-      String line = client.readStringUntil('\n');
-      // if (line.startsWith("{\"state\":\"success\"")) {
-      //   Serial.println("esp8266/Arduino CI successfull!");
-      // } else {
-      //   Serial.println("esp8266/Arduino CI has failed");
-      // }
-      Serial.println(line);
-    }
-    Serial.println("==========");
-    Serial.println("closing connection");
-    return "No reply";
 }
 
 void CheckWiFiConnection(){
