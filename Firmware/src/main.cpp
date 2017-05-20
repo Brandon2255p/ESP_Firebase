@@ -74,7 +74,8 @@ void loop() {
     Serial.println("Button 1 Pressed");
     delay(200);
     firebase.RequestJwt();
-    firebase.TestDb("/devices/esp1.json");
+    firebase.GetToken();
+    firebase.ReadDb("/devices/esp1.json");
     firebase.PutDb("/devices/esp2.json", "{\"name\":\"test\"}");
     //String token = GetToken(Jwt);
     //Serial.println(token);

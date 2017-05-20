@@ -5,6 +5,12 @@
 class String;
 class WiFiClientSecure;
 
+enum FireState {
+  Uninit,
+  JwtValid,
+  TokenValid
+};
+
 class Firebase
 {
 private:
@@ -14,19 +20,22 @@ private:
   String firebaseUrl;
   String firebaseFingerprint;
   const char* urlGoogleApi = "www.googleapis.com";
-  const char* googleApiFingerprint = "60 40 DB 92 30 6C C8 BC EB 31 CA CA C8 8D 10 74 30 B1 6A FF";
+  const char* googleApiFingerprint = "88 76 BF C5 1E 0D 1C 80 E1 A4 EB B8 00 9A BB 53 E8 FD 86 59";
+  String Jwt;
   String accessToken;
+  int JwtExpireTime = 0;
 
+  enum FireState state;
   void ParseAndStoreAccessToken(String const &accessTokenLine);
   bool TokenIsBearer(String const &bearerLine);
-  WiFiClientSecure ConnectSecure(String const &url, String const &fingerprint);
+  bool ConnectSecure(WiFiClientSecure &client, String const &url, String const &fingerprint);
 
 public:
   Firebase(char const * JwtHostUrl, char const* JwtFingerprint, char const * UrlFirebase, char const * FirebaseFingerprint);
   ~Firebase();
   void RequestJwt();
   void GetToken();
-  void TestDb(String const &getLocation);
+  void ReadDb(String const &getLocation);
   void PutDb(String const &putLocation, String const &putJson);
 
 };

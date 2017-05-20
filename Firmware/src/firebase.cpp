@@ -9,22 +9,26 @@ Firebase::Firebase(char const * JwtUrl, char const* JwtFingerprint, char const *
   jwtFingerprint = JwtFingerprint;
   firebaseUrl = FirebaseUrl;
   firebaseFingerprint = FirebaseFingerprint;
+  state = FireState::Uninit;
 }
 
 Firebase::~Firebase(){
 }
 
 void Firebase::RequestJwt(){
-  WiFiClientSecure client = ConnectSecure(jwtUrl, jwtFingerprint);
-  if(!client.connected()){
-    Serial.print("Not connected :(");
+  if(state == FireState::TokenValid)
+  {
+    Serial.println("Token is valid already!");
     return;
   }
+  WiFiClientSecure client;
+  bool connected = ConnectSecure(client, jwtUrl, jwtFingerprint);
+
   String url = "/sendIP";
   Serial.print("requesting URL: ");
   Serial.println(url);
 
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+  client.println(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + jwtUrl.c_str() + "\r\n" +
                "User-Agent: ESP8266\r\n" +
                "Connection: close\r\n\r\n");
@@ -33,7 +37,6 @@ void Firebase::RequestJwt(){
   while (client.connected()) {
     String line = client.readStringUntil('\n');
     if (line == "\r") {
-      Serial.println("headers received:");
       break;
     }
   }
@@ -43,25 +46,31 @@ void Firebase::RequestJwt(){
   Serial.println(line);
   Serial.println("==========");
   Serial.println("closing connection");
-
-  Serial.print("connecting to ");
-  Serial.println(urlGoogleApi);
-  if (!client.connect(urlGoogleApi, httpsPort)) {
-    Serial.println("connection failed");
+  Jwt = line;
+  if(Jwt.length() > 50)
+  {
+    state = FireState::JwtValid;
+  }
+}
+void Firebase::GetToken() {
+  if(state == FireState::TokenValid)
+  {
+    Serial.println("Token is valid already!");
     return;
   }
-
-  if (client.verify(googleApiFingerprint, urlGoogleApi)) {
-    Serial.println("certificate matches");
-  } else {
-    Serial.println("certificate doesn't match");
+  if(state != FireState::JwtValid)
+  {
+    Serial.println("Jwt is not valid. Can't get token.");
     return;
   }
-
-  url = "/oauth2/v4/token";
+  WiFiClientSecure client;
+  bool connected = ConnectSecure(client, urlGoogleApi, googleApiFingerprint);
+  if(!connected)
+    return;
+  String url = "/oauth2/v4/token";
   Serial.print("requesting URL: ");
   Serial.println(url);
-  String requestBody = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + line + "\r\n\r\n";
+  String requestBody = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + Jwt + "\r\n\r\n";
   String request = String("POST ") + url + " HTTP/1.1\r\n" +
                "Host: " + urlGoogleApi + "\r\n" +
                "Content-Type: application/x-www-form-urlencoded\r\n" +
@@ -107,11 +116,14 @@ void Firebase::RequestJwt(){
 }
 
 void Firebase::ParseAndStoreAccessToken(String const &accessTokenLine){
-  Serial.println(accessTokenLine);
   int beginIndex = accessTokenLine.indexOf("access_token\": \"") + 16;
   int endIndex = accessTokenLine.lastIndexOf("\"");
   accessToken = accessTokenLine.substring(beginIndex, endIndex);
   Serial.println(accessToken);
+  if(accessToken.length() > 20)
+  {
+    state = FireState::TokenValid;
+  }
 }
 
 bool Firebase::TokenIsBearer(String const &bearerLine){
@@ -120,8 +132,16 @@ bool Firebase::TokenIsBearer(String const &bearerLine){
   return isBearer;
 }
 
-void Firebase::TestDb(String const &getLocation) {
-  WiFiClientSecure client = ConnectSecure(firebaseUrl, firebaseFingerprint);
+void Firebase::ReadDb(String const &getLocation) {
+  if(state != FireState::TokenValid)
+  {
+    Serial.println("Token is not valid :(");
+    return;
+  }
+  WiFiClientSecure client;
+  bool connected = ConnectSecure(client, firebaseUrl, firebaseFingerprint);
+  if(!connected)
+    return;
   String request = String("GET ") + getLocation + "?access_token=" + accessToken + " HTTP/1.1\r\n" +
                "Host: " + firebaseUrl + "\r\n\r\n";
   Serial.println("====Sending====");
@@ -147,8 +167,15 @@ void Firebase::TestDb(String const &getLocation) {
 }
 
 void Firebase::PutDb(String const &putLocation, String const &putJson) {
-  WiFiClientSecure client = ConnectSecure(firebaseUrl, firebaseFingerprint);
-
+  if(state != FireState::TokenValid)
+  {
+    Serial.println("Token is not valid :(");
+    return;
+  }
+  WiFiClientSecure client;
+  bool connected = ConnectSecure(client, firebaseUrl, firebaseFingerprint);
+  if(!connected)
+    return;
   String request = String("PUT ") + putLocation + "?access_token=" + accessToken + " HTTP/1.1\r\n" +
                "Host: " + firebaseUrl + "\r\n" +
                "Content-Length: " + putJson.length() + "\r\n\r\n" +
@@ -175,20 +202,20 @@ void Firebase::PutDb(String const &putLocation, String const &putJson) {
   Serial.println("closing connection");
 }
 
-WiFiClientSecure Firebase::ConnectSecure(String const &url, String const &fingerprint)
+bool Firebase::ConnectSecure(WiFiClientSecure &client, String const &url, String const &fingerprint)
 {
-  WiFiClientSecure client;
   Serial.print("connecting to ");
   Serial.println(url);
   if (!client.connect(url.c_str(), httpsPort)) {
     Serial.println("connection failed");
-    return client;
+    return false;
   }
 
   if (client.verify(fingerprint.c_str(), url.c_str())) {
+    return true;
     Serial.println("certificate matches");
   } else {
+    return false;
     Serial.println("certificate doesn't match");
   }
-  return client;
 }
