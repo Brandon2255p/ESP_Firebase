@@ -208,6 +208,7 @@ bool Firebase::ConnectSecure(WiFiClientSecure &client, String const &url, String
   Serial.println(url);
   if (!client.connect(url.c_str(), httpsPort)) {
     Serial.println("connection failed");
+
     return false;
   }
 

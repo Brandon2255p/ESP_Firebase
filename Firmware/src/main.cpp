@@ -7,15 +7,23 @@
 #include "firebase.h"
 
 const int button1Pin = 2;
-// Use web browser to view and copy
-// SHA1 fingerprint of the certificate
-//Prototypes
+const int pinRelay1 = 12;
+const int pinRelay2 = 13;
+
+bool bRelay1 = false;
+bool bRelay2 = false;
+
 void CheckWiFiConnection();
 
 Firebase firebase(JwtFunctionHost, JwtFingerprint, FirebaseUrl, FirebaseFingerprint);
+WiFiServer server(80);
 
 void setup() {
   pinMode(button1Pin, INPUT);
+  pinMode(pinRelay1, OUTPUT);
+  pinMode(pinRelay2, OUTPUT);
+  digitalWrite(pinRelay1, bRelay1);
+  digitalWrite(pinRelay2, bRelay2);
   Serial.begin(115200);
   Serial.println("Booting");
   WiFi.mode(WIFI_STA);
@@ -63,23 +71,69 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   configTime(2 * 3600, 0, "pool.ntp.org", "time.nist.gov");
+  server.begin();
+  Serial.println("TCP server started");
 }
 
 void loop() {
   CheckWiFiConnection();
+  WiFiClient client = server.available();
   ArduinoOTA.handle();
-  delay(100);
   bool buttonPressed = !digitalRead(button1Pin);
   if(buttonPressed){
     Serial.println("Button 1 Pressed");
     delay(200);
     firebase.RequestJwt();
     firebase.GetToken();
-    firebase.ReadDb("/devices/esp1.json");
-    firebase.PutDb("/devices/esp2.json", "{\"name\":\"test\"}");
-    //String token = GetToken(Jwt);
-    //Serial.println(token);
+    //firebase.ReadDb("/devices/esp2.json");
+    firebase.PutDb("/devices/0001.json", "{\"name\":\"Bedside Light\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/1\"}");
   }
+
+  if (!client) {
+    return;
+  }
+  Serial.println("");
+  Serial.println("New client");
+  // Read the first line of HTTP request
+  String req = client.readStringUntil('\r');
+
+  // First line of HTTP request looks like "GET /path HTTP/1.1"
+  // Retrieve the "/path" part by finding the spaces
+  int addr_start = req.indexOf(' ');
+  int addr_end = req.indexOf(' ', addr_start + 1);
+  if (addr_start == -1 || addr_end == -1) {
+    Serial.print("Invalid request: ");
+    Serial.println(req);
+    return;
+  }
+  req = req.substring(addr_start + 1, addr_end);
+  Serial.print("Request: ");
+  Serial.println(req);
+  client.flush();
+
+  String s;
+  if (req == "/1?state=on")
+  {
+    digitalWrite(pinRelay1, HIGH);
+    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 on";
+    s += "</html>\r\n\r\n";
+    Serial.println("Sending 200");
+  }
+  else if (req == "/1?state=off")
+  {
+    digitalWrite(pinRelay1, LOW);
+    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 off";
+    s += "</html>\r\n\r\n";
+    Serial.println("Sending 200");
+  }
+  else
+  {
+    s = "HTTP/1.1 404 Not Found\r\n\r\n";
+    Serial.println("Sending 404");
+  }
+  client.print(s);
+
+  Serial.println("Done with client");
 }
 
 void CheckWiFiConnection(){
