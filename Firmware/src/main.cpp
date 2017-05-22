@@ -13,6 +13,8 @@ const int pinRelay2 = 13;
 bool bRelay1 = false;
 bool bRelay2 = false;
 
+unsigned long ltime;
+
 void CheckWiFiConnection();
 
 Firebase firebase(JwtFunctionHost, JwtFingerprint, FirebaseUrl, FirebaseFingerprint);
@@ -34,6 +36,7 @@ void setup() {
     ESP.restart();
   }
   ArduinoOTA.setHostname("myesp8266");
+  // ArduinoOTA.setHostname("extensioncord");
 
   // No authentication by default
   // ArduinoOTA.setPassword("admin");
@@ -76,17 +79,19 @@ void setup() {
 }
 
 void loop() {
+  ltime = millis();
   CheckWiFiConnection();
   WiFiClient client = server.available();
   ArduinoOTA.handle();
   bool buttonPressed = !digitalRead(button1Pin);
-  if(buttonPressed){
-    Serial.println("Button 1 Pressed");
-    delay(200);
+  bool refreshFirebase = ((int)(ltime / 1000 / 60)) % 1800 == 0; // every 30 minutes
+  if(buttonPressed || refreshFirebase){
+    Serial.println("Executing firebase...");
+    delay(300);
     firebase.RequestJwt();
     firebase.GetToken();
-    //firebase.ReadDb("/devices/esp2.json");
-    firebase.PutDb("/devices/0001.json", "{\"name\":\"Bedside Light\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/1\"}");
+    firebase.PutDb("/devices/2.json", "{\"name\":\"Dev 1\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/1\"}");
+    firebase.PutDb("/devices/3.json", "{\"name\":\"Dev 2\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/2\"}");
   }
 
   if (!client) {
@@ -126,11 +131,29 @@ void loop() {
     s += "</html>\r\n\r\n";
     Serial.println("Sending 200");
   }
+  else if (req == "/2?state=on")
+  {
+    digitalWrite(pinRelay2, HIGH);
+    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 on";
+    s += "</html>\r\n\r\n";
+    Serial.println("Sending 200");
+  }
+  else if (req == "/2?state=off")
+  {
+    digitalWrite(pinRelay2, LOW);
+    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 off";
+    s += "</html>\r\n\r\n";
+    Serial.println("Sending 200");
+  }
   else
   {
     s = "HTTP/1.1 404 Not Found\r\n\r\n";
     Serial.println("Sending 404");
   }
+  s += "<script type=\"text/javascript\">window.addEventListener('load',\
+  function() {\
+    window.close();\
+  }, false);</script>\r\n\r\n";
   client.print(s);
 
   Serial.println("Done with client");

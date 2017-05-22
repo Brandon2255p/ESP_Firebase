@@ -10,39 +10,26 @@
     <title>Control</title>
   </head>
   <body>
-    <div data-role="page">
-      <div data-role="header" data-position="fixed" data-fullscreen="true">
-        <h1>Control Center</h1>
-      </div>
-      <div role="main">
-          <div class="card">
+    <div data-role="page" >
+      <div role="main" id="devices">
+        <div class="card">
+          <h2>Short Cuts</h2>
+          <button class="button" target="_blank" onclick="http://osmc.local:8989">Sonarr</button>
+          <button class="button" target="_blank" onclick="http://osmc.local:9091">Transmission</button>
+          <button class="button" target="_blank" onclick="http://osmc.local:9090">Kodi</button>
+        </div>
+          <div class="card" id="load">
+            <h2>Devices</h2>
+            <button class="button" target="_blank" onclick="LoadStep()">Load</button>
+          </div>
+          <!-- <div class="card">
             <h2>Light</h2>
             <button id="testtag" class="button" target="_blank" onclick="loadOnPage();">On</button>
             <button id="testtag2" class="button" target="_blank" onclick="loadOffPage();">Off</button>
-          </div>
-          <div class="card">
-            <h2>Fan</h2>
-            <button class="button" target="_blank">On</button>
-            <button class="button" target="_blank">Off</button>
-            <div class="ui-flipswitch ui-shadow-inset ui-bar-inherit ui-corner-all ui-flipswitch-active"><a href="#" class="ui-flipswitch-on ui-btn ui-shadow ui-btn-inherit">On</a><span class="ui-flipswitch-off">Off</span><select name="flip2" id="flip2" data-role="flipswitch" class="ui-flipswitch-input" tabindex="-1">
-    				<option value="off">Off</option>
-    				<option value="on">On</option>
-    			</select></div>
-          </div>
-      </div>
-      <div data-role="footer">
-        <h1>Footer Text</h1>
+          </div> -->
       </div>
     </div>
-
-    <script>
-      function loadOnPage() {
-        relayPage = window.open("http://192.168.2.6/LED=ON", "MsgWindow", "");
-      }
-
-      function loadOffPage() {
-        relayPage = window.open("http://192.168.2.6/LED=OFF", "MsgWindow", "");
-      }
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>

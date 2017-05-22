@@ -18,12 +18,11 @@ body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   padding: 20px;
   outline: black;
   border-radius: 15px;
-  width: 159px;
-  height: 200px;
+  width: 160px;
+  height: 165px;
   box-shadow: 2px 3px 8px 0px black;
   background-color: white;
   text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 40px;
+  margin: 30px;
+  display: inline-block;
 }
