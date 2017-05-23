@@ -13,7 +13,10 @@ const int pinRelay2 = 13;
 bool bRelay1 = false;
 bool bRelay2 = false;
 
-unsigned long ltime;
+unsigned long ltime = 0;
+unsigned long triggerTime = 0;
+bool triggerState = false;
+int triggerPin = pinRelay1;
 
 void CheckWiFiConnection();
 
@@ -80,11 +83,14 @@ void setup() {
 
 void loop() {
   ltime = millis();
+  if(ltime > triggerTime){
+    digitalWrite(triggerPin, triggerState);
+  }
   CheckWiFiConnection();
   WiFiClient client = server.available();
   ArduinoOTA.handle();
   bool buttonPressed = !digitalRead(button1Pin);
-  bool refreshFirebase = ((int)(ltime / 1000 / 60)) % 1800 == 0; // every 30 minutes
+  bool refreshFirebase = ((int)(ltime / 100 / 60)) % 18000 == 0; // every 30 minutes
   if(buttonPressed || refreshFirebase){
     Serial.println("Executing firebase...");
     delay(300);
@@ -117,38 +123,32 @@ void loop() {
   client.flush();
 
   String s;
-  if (req == "/1?state=on")
-  {
-    digitalWrite(pinRelay1, HIGH);
-    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 on";
-    s += "</html>\r\n\r\n";
-    Serial.println("Sending 200");
+  int querySep = req.indexOf('?');
+  int relay = req.substring(1, querySep).toInt();
+  bool state = req.indexOf("state=on") != -1;
+  Serial.println(String("Found relay '") + relay + "' with state '" + state + "'.");
+  int delaySep = req.indexOf("delay=");
+  bool hasDelay = delaySep != -1;
+  if(hasDelay){
+    int timeDelay = req.substring(delaySep + 6, req.length()).toInt();
+    triggerTime = millis() + (timeDelay * 1000);
+    Serial.println("found delay");
+    Serial.println(timeDelay);
   }
-  else if (req == "/1?state=off")
-  {
-    digitalWrite(pinRelay1, LOW);
-    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 off";
-    s += "</html>\r\n\r\n";
-    Serial.println("Sending 200");
-  }
-  else if (req == "/2?state=on")
-  {
-    digitalWrite(pinRelay2, HIGH);
-    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 on";
-    s += "</html>\r\n\r\n";
-    Serial.println("Sending 200");
-  }
-  else if (req == "/2?state=off")
-  {
-    digitalWrite(pinRelay2, LOW);
-    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Switching relay 1 off";
-    s += "</html>\r\n\r\n";
-    Serial.println("Sending 200");
-  }
-  else
-  {
+  bool errorOccured = relay == 0 || relay > 2;
+  if(errorOccured){
     s = "HTTP/1.1 404 Not Found\r\n\r\n";
     Serial.println("Sending 404");
+  }
+  else{
+    s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>Command Accepted</html>\r\n\r\n";
+    Serial.println("Sending 200");
+    int pin = relay == 1 ? pinRelay1 : pinRelay2;
+    if(!hasDelay){
+        digitalWrite(pin, state);
+    }
+    triggerState = state;
+    triggerPin = pin;
   }
   s += "<script type=\"text/javascript\">window.addEventListener('load',\
   function() {\
