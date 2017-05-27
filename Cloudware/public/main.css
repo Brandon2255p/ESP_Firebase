@@ -7,6 +7,7 @@ body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   margin: 4px;
   border-width: inherit;
   width: 70px;
+  display: inline-block;
 }
 .button:hover {
   background-color: chartreuse;
@@ -19,10 +20,17 @@ body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   outline: black;
   border-radius: 15px;
   width: 160px;
-  height: 165px;
+  min-height: 180px;
   box-shadow: 2px 3px 8px 0px black;
   background-color: white;
   text-align: center;
   margin: 30px;
   display: inline-block;
+  vertical-align: top;
+}
+
+input[type="number"] {
+  width: 40px;
+  display: inline-block;
+  margin: 10px;
 }

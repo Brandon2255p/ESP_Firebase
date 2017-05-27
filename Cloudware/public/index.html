@@ -4,24 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="jquery.mobile-1.4.5.css">
     <script src="jquery.js"></script>
-    <script src="jquery.mobile-1.4.5.js"></script>
     <title>Control</title>
   </head>
-  <body>
+  <body onload="LoadStep()">
     <div data-role="page" >
       <div role="main" id="devices">
         <div class="card">
           <h2>Short Cuts</h2>
-          <button class="button" target="_blank" onclick="http://osmc.local:8989">Sonarr</button>
-          <button class="button" target="_blank" onclick="http://osmc.local:9091">Transmission</button>
-          <button class="button" target="_blank" onclick="http://osmc.local:9090">Kodi</button>
+          <a class="button" href="http://osmc.local:8989">Sonarr</a>
+          <a class="button" href="http://osmc.local:9091">Transmission</a>
+          <a class="button" href="http://osmc.local:9090">Kodi</a>
+          <input type="checkbox" name="enableDelay" value="false" class="enabler">
         </div>
-          <div class="card" id="load">
+          <!-- <div class="card" id="load">
             <h2>Devices</h2>
             <button class="button" target="_blank" onclick="LoadStep()">Load</button>
-          </div>
+          </div> -->
           <!-- <div class="card">
             <h2>Light</h2>
             <button id="testtag" class="button" target="_blank" onclick="loadOnPage();">On</button>

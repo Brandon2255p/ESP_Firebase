@@ -18,17 +18,28 @@ function LoadStep(){
       if(devices[i] != null){
         console.log("Found a node:: " + devices[i].name);
         console.log("with IP: " + devices[i].ip);
-        var cardDom = $("<div></div>").addClass("card");
-        var button = $("<button></button>").addClass("button").attr("onclick",  "CommandDevice('http://" + devices[i].ip + "', true)").text("On");
-        var button2 = $("<button></button>").addClass("button").attr("onclick", "CommandDevice('http://" + devices[i].ip + "', false)").text("Off");
-        var device = cardDom.append("<h2>"+ devices[i].name + "</h2>", button, button2);
+        var cardDom = $("<div id='card"+ i +"'></div>").addClass("card");
+        var button  = $("<button></button>").addClass("button").data("url", "http://" + devices[i].ip).data("state",true).text("On");
+        var button2 = $("<button></button>").addClass("button").data("url", "http://" + devices[i].ip).data("state",false).text("Off");
+        console.log(button);
+        var minutesInput = $("<input></input>").val(0).addClass("delay");
+        var device = cardDom.append("<h2>"+ devices[i].name + "</h2>", button, button2, "Delay", minutesInput);
         $("#devices").append(device);
       }
     }
-    $("#load").slideUp();
+    $(".button").click(function(){
+      var parent = $(this).closest(".card");
+      var url = $(this).data("url");
+      var state = $(this).data("state");
+      var delay = $(parent).find(".delay").val();
+      console.log("URL: " + url);
+      console.log("State: " + state);
+      console.log("Delay: " + (delay > 0 ? "&delay=" + delay : "none"));
+      relayPage = window.open(url + "?state=" + (state ? "on" : "off") + (delay > 0 ? "&delay=" + delay : ""), "");
+    });
   });
 }
-
-function CommandDevice(url, command){
-  relayPage = window.open(url + "?state=" + (command ? "on" : "off"), "MsgWindow", "");
-}
+//
+// function CommandDevice(url, command){
+//   relayPage = window.open(url + "?state=" + (command ? "on" : "off"), "MsgWindow", "");
+// }
