@@ -1,7 +1,7 @@
 body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   text-align: center;}
 .button {
-  background-color: #71bef1;
+  background-color: #1b9aef;
   padding: 8px;
   border-radius: 7px;
   margin: 4px;
@@ -10,7 +10,7 @@ body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   display: inline-block;
 }
 .button:hover {
-  background-color: chartreuse;
+  background-color: #a0eef7;
 }
 .card {
   border-color: black;
@@ -29,7 +29,7 @@ body { font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
   vertical-align: top;
 }
 
-input[type="number"] {
+.delay {
   width: 40px;
   display: inline-block;
   margin: 10px;

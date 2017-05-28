@@ -22,7 +22,7 @@ function LoadStep(){
         var button  = $("<button></button>").addClass("button").data("url", "http://" + devices[i].ip).data("state",true).text("On");
         var button2 = $("<button></button>").addClass("button").data("url", "http://" + devices[i].ip).data("state",false).text("Off");
         console.log(button);
-        var minutesInput = $("<input></input>").val(0).addClass("delay");
+        var minutesInput = $("<input></input>").attr("type", "number").val(0).addClass("delay");
         var device = cardDom.append("<h2>"+ devices[i].name + "</h2>", button, button2, "Delay", minutesInput);
         $("#devices").append(device);
       }
@@ -31,7 +31,7 @@ function LoadStep(){
       var parent = $(this).closest(".card");
       var url = $(this).data("url");
       var state = $(this).data("state");
-      var delay = $(parent).find(".delay").val();
+      var delay = $(parent).find(".delay").val() * 60;
       console.log("URL: " + url);
       console.log("State: " + state);
       console.log("Delay: " + (delay > 0 ? "&delay=" + delay : "none"));
