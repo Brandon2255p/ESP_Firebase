@@ -20,10 +20,10 @@ private:
   String firebaseUrl;
   String firebaseFingerprint;
   const char* urlGoogleApi = "www.googleapis.com";
-  const char* googleApiFingerprint = "88 76 BF C5 1E 0D 1C 80 E1 A4 EB B8 00 9A BB 53 E8 FD 86 59";
+  const char* googleApiFingerprint = "86 4E 7F 77 7C B4 31 8F 73 41 3E F9 20 72 CE 84 CE 6A B5 B3";
   String Jwt;
   String accessToken;
-  int JwtExpireTime = 0;
+  long JwtExpireTime = 0;
 
   enum FireState state;
   void ParseAndStoreAccessToken(String const &accessTokenLine);

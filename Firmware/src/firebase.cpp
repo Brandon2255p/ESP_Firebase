@@ -16,6 +16,11 @@ Firebase::~Firebase(){
 }
 
 void Firebase::RequestJwt(){
+  bool Expired = (millis() - JwtExpireTime) > (5 * 60 * 1000);
+  if(Expired){
+    Serial.println("##Expired!");
+    state = FireState::Uninit;
+  }
   if(state == FireState::TokenValid)
   {
     Serial.println("Token is valid already!");
@@ -36,6 +41,7 @@ void Firebase::RequestJwt(){
   Serial.println("request sent");
   while (client.connected()) {
     String line = client.readStringUntil('\n');
+    Serial.println(line);
     if (line == "\r") {
       break;
     }
@@ -112,6 +118,7 @@ void Firebase::GetToken() {
   }
   Serial.println("==========");
   Serial.println("closing connection");
+  JwtExpireTime = millis();
   return;
 }
 
@@ -213,10 +220,10 @@ bool Firebase::ConnectSecure(WiFiClientSecure &client, String const &url, String
   }
 
   if (client.verify(fingerprint.c_str(), url.c_str())) {
-    return true;
     Serial.println("certificate matches");
+    return true;
   } else {
-    return false;
     Serial.println("certificate doesn't match");
+    return false;
   }
 }

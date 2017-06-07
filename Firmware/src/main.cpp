@@ -38,15 +38,8 @@ void setup() {
     delay(5000);
     ESP.restart();
   }
-  ArduinoOTA.setHostname("myesp8266");
-  // ArduinoOTA.setHostname("extensioncord");
-
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+  // ArduinoOTA.setHostname("myesp8266");
+  ArduinoOTA.setHostname("extensioncord");
 
   ArduinoOTA.onStart([]() {
     String type;
@@ -90,14 +83,16 @@ void loop() {
   WiFiClient client = server.available();
   ArduinoOTA.handle();
   bool buttonPressed = !digitalRead(button1Pin);
-  bool refreshFirebase = ((int)(ltime / 100 / 60)) % 18000 == 0; // every 30 minutes
+  bool refreshFirebase = (((int)(ltime / 100 / 60)) % 12000 == 0) || (millis() < 20000); // every 20 minutes or first 20s of boot
   if(buttonPressed || refreshFirebase){
     Serial.println("Executing firebase...");
     delay(300);
     firebase.RequestJwt();
     firebase.GetToken();
-    firebase.PutDb("/devices/2.json", "{\"name\":\"Dev 1\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/1\"}");
-    firebase.PutDb("/devices/3.json", "{\"name\":\"Dev 2\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/2\"}");
+    // firebase.PutDb("/devices/0.json", "{\"name\":\"Light\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/1\"}");
+    // firebase.PutDb("/devices/1.json", "{\"name\":\"None\",\"ip\":\"" + String(WiFi.localIP().toString()) + "/2\"}");
+    firebase.PutDb("/devices/0/ip.json", "\"" + String(WiFi.localIP().toString()) + "/1\"");
+    firebase.PutDb("/devices/1/ip.json", "\"" + String(WiFi.localIP().toString()) + "/2\"");
   }
 
   if (!client) {
